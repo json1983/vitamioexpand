@@ -23,9 +23,12 @@ import android.view.WindowManager;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaPlayer;
 
 import io.vov.vitamio.Vitamio;
+import io.vov.vitamio.MediaPlayer.OnPreparedListener;
+import io.vov.vitamio.MediaPlayer.OnSeekCompleteListener;
 import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
 
@@ -35,7 +38,7 @@ public class MainActivity extends Activity implements Runnable{
     private VideoView mVideoView;
     private MyMediaController myMediaController;
 
-    String path1 = Environment.getExternalStorageDirectory() + "/Download/test3.mp4";
+    //String path1 = Environment.getExternalStorageDirectory() + "/Download/test3.mp4";
 
     private static final int TIME = 0;
     private static final int BATTERY = 1;
@@ -58,6 +61,9 @@ public class MainActivity extends Activity implements Runnable{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!LibsChecker.checkVitamioLibs(this)) {
+			return;
+		}
 
         //定义全屏参数
         int flag = WindowManager.LayoutParams.FLAG_FULLSCREEN;
@@ -65,19 +71,35 @@ public class MainActivity extends Activity implements Runnable{
         Window window = MainActivity.this.getWindow();
         //设置当前窗体为全屏显示
         window.setFlags(flag, flag);
-
+        
         toggleHideyBar();
         setContentView(R.layout.activity_main);
 
 
         mVideoView = (VideoView) findViewById(R.id.surface_view);
-        mVideoView.setVideoPath(path1);
+        //设置播放路径
+        mVideoView.setVideoPath("http://192.168.1.103:8080/1.avi");
+//        mVideoView.start();
         myMediaController = new MyMediaController(this, mVideoView, this);
         myMediaController.show(5000);
 
         mVideoView.setMediaController(myMediaController);
         mVideoView.setVideoQuality(MediaPlayer.VIDEOQUALITY_HIGH);//高画质
         mVideoView.requestFocus();
+        //++++++++++++++++++++++++++++++我添加的代码,播放视频+++++++++++++++++++++++++++++++++++++++++++++/
+        
+        mVideoView.setOnPreparedListener(new OnPreparedListener() {
+			//当装载流媒体完毕的时候回调。
+			@Override
+			public void onPrepared(MediaPlayer mp) {
+				// TODO Auto-generated method stub
+				mVideoView.start();
+			}
+		});
+       
+		
+        //++++++++++++++++++++++++++++++我添加的代码,播放视频+++++++++++++++++++++++++++++++++++++++++++++//
+        
         //画面是否拉伸
 //        mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_STRETCH, 16/9 );
         registerBoradcastReceiver();
